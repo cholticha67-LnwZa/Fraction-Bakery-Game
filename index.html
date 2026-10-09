@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ร้านเบเกอรีนักแบ่งเค้ก - Fraction Bakery Prototype</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Mali:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for Sound Effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bakery: {
+                            pink: '#FF85A1',
+                            cream: '#FFF5EB',
+                            yellow: '#FFD166',
+                            brown: '#7F5539',
+                            choco: '#583101',
+                            orange: '#F9844A',
+                            strawberry: '#F25C54',
+                            matcha: '#84A59D',
+                            blueberry: '#6B705C',
+                            blue: '#4EA8DE'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                        cute: ['Mali', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #FFF9F2;
+            background-image: radial-gradient(#F7D6C8 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .cake-slice-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .cake-slice-hover:hover {
+            transform: scale(1.05) translateY(-3px);
+            filter: brightness(1.1);
+        }
+        /* Pulse Animation */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 133, 161, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(255, 133, 161, 0.8); }
+        }
+        .glow-effect {
+            animation: pulse-glow 2s infinite;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1E3D3;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #DDA15E;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-800 antialiased min-h-screen flex flex-col justify-between selection:bg-bakery-pink selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="bg-white/90 backdrop-blur-md border-b-4 border-amber-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 bg-bakery-pink rounded-2xl flex items-center justify-center text-white text-2xl shadow-md transform -rotate-3">
+                    <i class="fa-solid font-cute fa-birthday-cake"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold font-cute text-bakery-choco flex items-center gap-2">
+                        ร้านเบเกอรีนักแบ่งเค้ก
+                        <span class="text-xs bg-emerald-100 text-emerald-700 font-sans px-2.5 py-0.5 rounded-full border border-emerald-300 font-medium flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> ออนไลน์
+                        </span>
+                    </h1>
+                    <p class="text-xs text-gray-500" id="player-welcome-msg">กำลังเชื่อมต่อข้อมูล...</p>
+                </div>
+            </div>
+
+            <!-- Stats & Navigation Tools -->
+            <div class="flex items-center gap-3">
+                <!-- User Profile Badge -->
+                <div onclick="openLoginModal()" class="cursor-pointer hover:bg-amber-100 bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 flex items-center space-x-2 transition">
+                    <div class="w-8 h-8 rounded-full bg-amber-300 flex items-center justify-center text-amber-900 font-bold border-2 border-white shadow-sm">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="hidden sm:block">
+                        <div class="text-[10px] text-gray-500 uppercase font-bold leading-none">เชฟ</div>
+                        <div id="player-name-display" class="text-sm font-bold text-amber-900 leading-tight">ผู้เล่นใหม่</div>
+                    </div>
+                </div>
+
+                <div class="bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 flex items-center space-x-2">
+                    <i class="fa-solid fa-star text-amber-500 text-lg"></i>
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase font-bold leading-none">คะแนนดาว</div>
+                        <div id="score-display" class="text-lg font-bold text-amber-900 leading-tight">0</div>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex bg-rose-50 px-3 py-1.5 rounded-xl border border-rose-200 items-center space-x-2">
+                    <i class="fa-solid fa-utensils text-rose-500 text-lg"></i>
+                    <div>
+                        <div class="text-[10px] text-gray-500 uppercase font-bold leading-none">เสิร์ฟแล้ว</div>
+                        <div id="completed-count" class="text-lg font-bold text-rose-900 leading-tight">0 ถาด</div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard Button -->
+                <button onclick="openLeaderboard()" class="bg-indigo-500 hover:bg-indigo-600 active:scale-95 text-white font-medium text-sm px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span class="hidden lg:inline">จัดอันดับ</span>
+                </button>
+
+                <button onclick="openTutorialModal()" class="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-medium text-sm px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-film"></i>
+                    <span class="hidden sm:inline">การ์ตูนกติกา</span>
+                </button>
+
+                <button onclick="toggleSound()" id="sound-btn" class="bg-gray-100 hover:bg-gray-200 text-gray-700 w-10 h-10 rounded-xl transition flex items-center justify-center">
+                    <i class="fa-solid fa-volume-high"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 py-6 w-full grow grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- LEFT PANEL: Customer Order Card (3 Cols) -->
+        <section class="lg:col-span-4 flex flex-col gap-4">
+            <!-- Customer Card Box -->
+            <div class="bg-white rounded-3xl p-5 border-2 border-amber-100 shadow-sm relative overflow-hidden flex flex-col justify-between">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-100/50 rounded-full blur-2xl"></div>
+                
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
+                            <i class="fa-solid fa-receipt mr-1"></i> ใบออเดอร์ลูกค้า
+                        </span>
+                        <span id="order-difficulty" class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                            ระดับ: ง่าย
+                        </span>
+                    </div>
+
+                    <!-- Customer Avatar & Speech Bubble -->
+                    <div class="flex items-start gap-3 my-2">
+                        <div id="customer-avatar" class="w-16 h-16 rounded-2xl bg-amber-100 border-2 border-amber-300 flex items-center justify-center text-3xl shadow-inner shrink-0">
+                            👦
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl rounded-tl-none text-sm text-amber-950 font-medium relative w-full">
+                            <p id="customer-dialogue">"สวัสดีครับเชฟ! ผมอยากได้เค้กไปจัดงานปาร์ตี้ครับ ช่วยรวมเศษส่วนเค้กตามนี้ให้หน่อยนะครับ"</p>
+                        </div>
+                    </div>
+
+                    <!-- Order Target Details -->
+                    <div class="bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl p-4 text-white shadow-md my-3">
+                        <div class="text-xs font-medium opacity-90 mb-1 flex items-center gap-1">
+                            <i class="fa-solid fa-bullseye"></i> โจทย์ออเดอร์เค้กที่ต้องจัด:
+                        </div>
+                        <div id="order-text" class="text-xl font-bold font-cute tracking-wide my-1">
+                            เค้กช็อกโกแลต 1/2 ปอนด์ + เค้กส้ม 1/3 ปอนด์
+                        </div>
+                        <div class="text-xs opacity-90 border-t border-white/20 pt-2 mt-2 flex justify-between items-center">
+                            <span>เป้าหมายรวม:</span>
+                            <span id="target-fraction-display" class="font-bold text-yellow-200 text-sm">?</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls for Order -->
+                <div class="flex flex-col gap-2 pt-2">
+                    <button onclick="drawNewOrder()" class="w-full bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 font-medium py-2 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 border border-slate-300">
+                        <i class="fa-solid fa-arrows-rotate"></i> เปลี่ยนลูกค้า / สุ่มออเดอร์ใหม่
+                    </button>
+                    <button onclick="generateAIOrder()" class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-medium py-2 px-4 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> สร้างโจทย์พิเศษด้วย AI (Gemini)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Hints & Pedagogy Helper -->
+            <div class="bg-blue-50/80 border border-blue-200 rounded-2xl p-4 text-blue-950 text-xs space-y-2">
+                <div class="font-bold flex items-center text-blue-800 gap-1.5 text-sm">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-base"></i> เคล็ดลับนักแบ่งเค้ก (ค.ร.น. = 12):
+                </div>
+                <p class="leading-relaxed text-blue-900">
+                    ถาดเค้กตรงกลางถูกแบ่งเป็น **12 ช่องเท่ากัน** <br>
+                    • <span class="font-semibold text-amber-900">1/2 ปอนด์</span> จะทับพอดี <span class="bg-amber-200 font-bold px-1 rounded">6 ช่อง</span><br>
+                    • <span class="font-semibold text-orange-900">1/3 ปอนด์</span> จะทับพอดี <span class="bg-orange-200 font-bold px-1 rounded">4 ช่อง</span><br>
+                    • <span class="font-semibold text-rose-900">1/4 ปอนด์</span> จะทับพอดี <span class="bg-rose-200 font-bold px-1 rounded">3 ช่อง</span><br>
+                    • <span class="font-semibold text-emerald-900">1/6 ปอนด์</span> จะทับพอดี <span class="bg-emerald-200 font-bold px-1 rounded">2 ช่อง</span>
+                </p>
+            </div>
+        </section>
+
+        <!-- CENTER PANEL: Interactive Verification Tray (5 Cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+            <div class="bg-white rounded-3xl p-5 border-2 border-amber-100 shadow-sm flex flex-col items-center justify-between h-full relative">
+                
+                <!-- Tray Header -->
+                <div class="w-full flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-500 inline-block animate-ping"></span>
+                        <h2 class="font-bold font-cute text-gray-800 text-lg">ถาดตรวจสอบมาตรฐาน (12 ช่อง)</h2>
+                    </div>
+                    <button onclick="clearTray()" class="text-xs text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-3 py-1 rounded-xl transition flex items-center gap-1 font-medium">
+                        <i class="fa-solid fa-trash-can"></i> ล้างถาด
+                    </button>
+                </div>
+
+                <!-- Interactive Canvas Tray / SVG Display -->
+                <div class="relative w-full aspect-square max-w-[340px] flex items-center justify-center my-2 p-2">
+                    <!-- SVG Round Tray with 12 Grid Lines -->
+                    <svg id="cake-tray-svg" viewBox="0 0 400 400" class="w-full h-full drop-shadow-xl transition-all">
+                        <!-- Outer Wooden Board Background -->
+                        <circle cx="200" cy="200" r="190" fill="#E6CCB2" stroke="#B08968" stroke-width="8" />
+                        <circle cx="200" cy="200" r="175" fill="#FFF8F0" stroke="#DDB892" stroke-width="4" stroke-dasharray="6,6" />
+                        
+                        <!-- Dynamic Placed Cake Wedges Container -->
+                        <g id="placed-slices-group"></g>
+
+                        <!-- 12 Subdivision Dashed Lines & Numbers -->
+                        <g id="tray-grid-lines" stroke="#7F5539" stroke-width="1.5" stroke-dasharray="4,4" opacity="0.65"></g>
+
+                        <!-- Outer Number Labels for 12 Divisions -->
+                        <g id="tray-grid-labels" class="text-[11px] font-bold fill-amber-900"></g>
+
+                        <!-- Center Metal Pin -->
+                        <circle cx="200" cy="200" r="12" fill="#7F5539" stroke="#FFF" stroke-width="2" />
+                        <circle cx="200" cy="200" r="4" fill="#FFF" />
+                    </svg>
+
+                    <!-- Empty Tray Hint -->
+                    <div id="empty-tray-msg" class="absolute pointer-events-none text-center bg-white/80 backdrop-blur-sm px-4 py-2 rounded-2xl border border-amber-200 shadow-sm transition-opacity opacity-100">
+                        <p class="text-xs font-bold text-amber-900">หยิบเค้กจาก "ตู้เค้ก" ด้านขวา</p>
+                        <p class="text-[10px] text-amber-700">เพื่อวางเรียงบนถาดทดสอบ</p>
+                    </div>
+                </div>
+
+                <!-- Tray Live Summary Status Bar -->
+                <div class="w-full bg-amber-50 rounded-2xl p-3 border border-amber-200">
+                    <div class="flex justify-between items-center text-xs text-amber-900 font-semibold mb-1">
+                        <span>จำนวนช่องประที่ถูกครอบคลุม:</span>
+                        <span id="slots-count-text" class="text-sm font-bold text-amber-700">0 / 12 ช่อง</span>
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-amber-200/60 rounded-full h-3 overflow-hidden p-0.5">
+                        <div id="tray-progress-bar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full rounded-full transition-all duration-300 w-0"></div>
+                    </div>
+                    <div class="flex justify-between items-center text-[11px] text-gray-500 mt-1">
+                        <span id="fraction-sum-simple">เค้กรวมบนถาด: 0 ปอนด์</span>
+                        <span id="fraction-sum-twelfths" class="font-bold text-amber-800">คิดเป็น 0/12</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Fridge Slices & Symbolic Ledger (4 Cols) -->
+        <section class="lg:col-span-3 flex flex-col gap-4">
+            
+            <!-- 1. Fridge / Cake Selector -->
+            <div class="bg-white rounded-3xl p-4 border-2 border-amber-100 shadow-sm">
+                <h2 class="font-bold font-cute text-gray-800 text-base mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-snowflake text-cyan-500"></i> ตู้เค้กเศษส่วน
+                </h2>
+                <p class="text-[11px] text-gray-500 mb-3">กดเลือกเค้กเพื่อนำไปวางบนถาด:</p>
+
+                <!-- Cake Piece Buttons List -->
+                <div class="grid grid-cols-1 gap-2">
+                    <!-- 1/2 Chocolate -->
+                    <button onclick="addCakePiece('1/2', 'choco')" class="cake-slice-hover flex items-center justify-between p-2.5 rounded-2xl bg-amber-900 text-white border-2 border-amber-950 shadow-sm group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-amber-800 border border-amber-600 flex items-center justify-center font-bold text-sm">
+                                1/2
+                            </span>
+                            <div class="text-left">
+                                <div class="text-xs font-bold leading-tight">ช็อกโกแลต</div>
+                                <div class="text-[10px] text-amber-200 opacity-90">กินพื้นที่ 6 ช่อง (6/12)</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-plus-circle text-amber-300 text-lg group-hover:scale-110 transition"></i>
+                    </button>
+
+                    <!-- 1/3 Orange -->
+                    <button onclick="addCakePiece('1/3', 'orange')" class="cake-slice-hover flex items-center justify-between p-2.5 rounded-2xl bg-orange-500 text-white border-2 border-orange-600 shadow-sm group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-orange-600 border border-orange-400 flex items-center justify-center font-bold text-sm">
+                                1/3
+                            </span>
+                            <div class="text-left">
+                                <div class="text-xs font-bold leading-tight">ส้มสด</div>
+                                <div class="text-[10px] text-orange-100 opacity-90">กินพื้นที่ 4 ช่อง (4/12)</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-plus-circle text-orange-200 text-lg group-hover:scale-110 transition"></i>
+                    </button>
+
+                    <!-- 1/4 Strawberry -->
+                    <button onclick="addCakePiece('1/4', 'strawberry')" class="cake-slice-hover flex items-center justify-between p-2.5 rounded-2xl bg-rose-500 text-white border-2 border-rose-600 shadow-sm group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-rose-600 border border-rose-400 flex items-center justify-center font-bold text-sm">
+                                1/4
+                            </span>
+                            <div class="text-left">
+                                <div class="text-xs font-bold leading-tight">สตอเบอร์รี</div>
+                                <div class="text-[10px] text-rose-100 opacity-90">กินพื้นที่ 3 ช่อง (3/12)</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-plus-circle text-rose-200 text-lg group-hover:scale-110 transition"></i>
+                    </button>
+
+                    <!-- 1/6 Matcha -->
+                    <button onclick="addCakePiece('1/6', 'matcha')" class="cake-slice-hover flex items-center justify-between p-2.5 rounded-2xl bg-emerald-600 text-white border-2 border-emerald-700 shadow-sm group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-emerald-700 border border-emerald-500 flex items-center justify-center font-bold text-sm">
+                                1/6
+                            </span>
+                            <div class="text-left">
+                                <div class="text-xs font-bold leading-tight">ชาเขียวมัทฉะ</div>
+                                <div class="text-[10px] text-emerald-100 opacity-90">กินพื้นที่ 2 ช่อง (2/12)</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-plus-circle text-emerald-200 text-lg group-hover:scale-110 transition"></i>
+                    </button>
+
+                    <!-- 1/12 Blueberry -->
+                    <button onclick="addCakePiece('1/12', 'blueberry')" class="cake-slice-hover flex items-center justify-between p-2.5 rounded-2xl bg-slate-600 text-white border-2 border-slate-700 shadow-sm group">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-slate-700 border border-slate-500 flex items-center justify-center font-bold text-sm">
+                                1/12
+                            </span>
+                            <div class="text-left">
+                                <div class="text-xs font-bold leading-tight">บลูเบอร์รี</div>
+                                <div class="text-[10px] text-slate-200 opacity-90">กินพื้นที่ 1 ช่อง (1/12)</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-plus-circle text-slate-200 text-lg group-hover:scale-110 transition"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. Store Ledger (Symbolic Translation Input) -->
+            <div class="bg-amber-50/90 rounded-3xl p-4 border-2 border-amber-300 shadow-md flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <h2 class="font-bold font-cute text-amber-950 text-base flex items-center gap-1.5">
+                            <i class="fa-solid fa-book-bookmark text-amber-700"></i> สมุดบันทึกบัญชีร้าน
+                        </h2>
+                        <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full">แปลงเป็นตัวเลข</span>
+                    </div>
+                    <p class="text-[11px] text-amber-800 mb-3">เมื่อวางเค้กเสร็จ ต้องบันทึกเปลี่ยนส่วนเป็น 12 ก่อนส่งเสิร์ฟ:</p>
+
+                    <!-- Equation Fill-in-the-blanks Form -->
+                    <div class="bg-white p-3 rounded-2xl border border-amber-200 space-y-3 text-xs shadow-inner">
+                        <!-- Step 1: Original Problem Representation -->
+                        <div class="flex items-center justify-center gap-1.5 text-sm font-bold text-gray-700">
+                            <span id="eq-term1" class="bg-gray-100 px-2 py-1 rounded-lg border border-gray-300">1/2</span>
+                            <span id="eq-op" class="text-amber-600">+</span>
+                            <span id="eq-term2" class="bg-gray-100 px-2 py-1 rounded-lg border border-gray-300">1/3</span>
+                        </div>
+
+                        <!-- Step 2: Converted to Denominator 12 -->
+                        <div class="flex items-center justify-center gap-1.5 pt-2 border-t border-dashed border-amber-200">
+                            <div class="flex flex-col items-center">
+                                <input type="number" id="input-num1" min="0" max="12" placeholder="?" class="w-10 text-center font-bold bg-amber-50 border border-amber-400 rounded-lg p-1 text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                <div class="w-full h-0.5 bg-amber-900 my-0.5"></div>
+                                <span class="font-bold text-amber-900 text-xs">12</span>
+                            </div>
+
+                            <span id="eq-op2" class="font-bold text-amber-700 text-base">+</span>
+
+                            <div class="flex flex-col items-center">
+                                <input type="number" id="input-num2" min="0" max="12" placeholder="?" class="w-10 text-center font-bold bg-amber-50 border border-amber-400 rounded-lg p-1 text-amber-900 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                <div class="w-full h-0.5 bg-amber-900 my-0.5"></div>
+                                <span class="font-bold text-amber-900 text-xs">12</span>
+                            </div>
+
+                            <span class="font-bold text-amber-900 text-base">=</span>
+
+                            <div class="flex flex-col items-center">
+                                <input type="number" id="input-result" min="0" max="12" placeholder="?" class="w-12 text-center font-bold bg-amber-200 border-2 border-amber-500 rounded-lg p-1 text-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-600">
+                                <div class="w-full h-0.5 bg-amber-900 my-0.5"></div>
+                                <span class="font-bold text-amber-900 text-xs">12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button onclick="submitOrderAndLedger()" class="mt-3 w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 active:scale-98 text-white font-bold py-3 px-4 rounded-2xl transition shadow-md flex items-center justify-center gap-2 text-sm glow-effect">
+                    <i class="fa-solid fa-paper-plane"></i> ตรวจและส่งออเดอร์ให้ลูกค้า!
+                </button>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal 1: Story & Misconception Animation Intro -->
+    <div id="tutorial-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl border-4 border-amber-300 relative transform scale-95 transition-transform duration-300 overflow-hidden">
+            
+            <button onclick="closeTutorialModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <!-- Slides Container -->
+            <div id="story-slides">
+                <!-- Slide 1 -->
+                <div class="slide-item block text-center space-y-4">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">ตอนที่ 1: ปริศนาเค้กที่บวกกันไม่ได้!</span>
+                    <h3 class="text-2xl font-bold font-cute text-amber-950">"ทำไม 1/2 + 1/3 ถึงไม่ใช่ 2/5?"</h3>
+                    
+                    <div class="flex items-center justify-center gap-4 py-4 bg-amber-50 rounded-2xl border border-amber-200">
+                        <div class="text-center">
+                            <div class="w-20 h-20 rounded-full border-2 border-amber-800 bg-amber-900 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-sm">1/2</div>
+                            <span class="text-xs text-amber-900 font-bold mt-1 block">ช็อกโกแลต (ครึ่งถาด)</span>
+                        </div>
+                        <span class="text-2xl font-bold text-amber-700">+</span>
+                        <div class="text-center">
+                            <div class="w-20 h-20 rounded-full border-2 border-orange-600 bg-orange-500 text-white flex items-center justify-center font-bold text-lg mx-auto shadow-sm">1/3</div>
+                            <span class="text-xs text-orange-900 font-bold mt-1 block">ส้ม (1 ใน 3 ถาด)</span>
+                        </div>
+                    </div>
+
+                    <p class="text-sm text-gray-700 leading-relaxed max-w-lg mx-auto">
+                        หากหนูนำเอา <span class="font-bold text-rose-600">ตัวบน+ตัวบน (1+1=2)</span> และ <span class="font-bold text-rose-600">ตัวล่าง+ตัวล่าง (2+3=5)</span> จะได้คำตอบคือ <span class="font-bold text-rose-600">2/5</span>... ซึ่งน้อยกว่าครึ่งถาดเสียอีก! แต่ของจริงสองชิ้นรวมกันเกือบเต็มถาด!
+                    </p>
+                </div>
+
+                <!-- Slide 2 -->
+                <div class="slide-item hidden text-center space-y-4">
+                    <span class="bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full">ตอนที่ 2: พระเอกของเรา "ถาด 12 ช่อง"</span>
+                    <h3 class="text-2xl font-bold font-cute text-amber-950">ทำตัวส่วนให้เท่ากันด้วยการนับช่อง!</h3>
+
+                    <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4 rounded-2xl shadow-md text-sm max-w-lg mx-auto text-left space-y-2">
+                        <p><i class="fa-solid fa-check-circle text-yellow-200"></i> เค้ก 1/2 วางบนถาด 12 ช่อง จะครอบคลุมพอดี <strong class="text-yellow-200">6 ช่อง (6/12)</strong></p>
+                        <p><i class="fa-solid fa-check-circle text-yellow-200"></i> เค้ก 1/3 วางบนถาด 12 ช่อง จะครอบคลุมพอดี <strong class="text-yellow-200">4 ช่อง (4/12)</strong></p>
+                        <p><i class="fa-solid fa-star text-yellow-200"></i> นำช่องมารวมกัน: 6 + 4 = <strong class="text-yellow-200 text-base">10 ช่อง (10/12)</strong> ได้คำตอบเป๊ะทันที!</p>
+                    </div>
+
+                    <p class="text-sm text-gray-600">
+                        นี่คือเหตุผลที่เชฟเบเกอรีต้องเปลี่ยนเศษส่วนให้เป็นส่วน 12 ก่อนเสมอ!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Slide Navigation Footer -->
+            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                <button id="prev-slide-btn" onclick="changeSlide(-1)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl transition font-medium opacity-50 cursor-not-allowed">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> ย้อนกลับ
+                </button>
+
+                <div class="flex gap-1.5">
+                    <span class="slide-dot w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span class="slide-dot w-2.5 h-2.5 rounded-full bg-gray-200"></span>
+                </div>
+
+                <button id="next-slide-btn" onclick="changeSlide(1)" class="text-xs bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-xl transition font-medium shadow-sm">
+                    ถัดไป <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal 2: Custom Alert / Toast Modal -->
+    <div id="custom-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl text-center space-y-4 border-2 border-amber-200 transform scale-95 transition-transform duration-200">
+            <div id="modal-icon" class="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-3xl mx-auto">
+                <i class="fa-solid fa-star"></i>
+            </div>
+            <h3 id="modal-title" class="text-xl font-bold font-cute text-amber-950">หัวข้อข้อความ</h3>
+            <p id="modal-msg" class="text-xs text-gray-600 leading-relaxed">เนื้อหาข้อความจะแสดงตรงนี้</p>
+            <button onclick="closeCustomModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                ตกลง / เข้าใจแล้ว
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 3: Player Login / Setup -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-4 border-amber-300 text-center transform scale-95 transition-transform duration-300">
+            <div class="w-20 h-20 bg-amber-100 rounded-full mx-auto flex items-center justify-center text-4xl mb-4 shadow-inner">
+                🧑‍🍳
+            </div>
+            <h2 class="text-2xl font-bold font-cute text-amber-950 mb-2">ยินดีต้อนรับสู่สาขาใหม่!</h2>
+            <p class="text-sm text-gray-600 mb-6">กรุณาตั้งชื่อเชฟของคุณเพื่อบันทึกผลงานลงระบบออนไลน์</p>
+            
+            <input type="text" id="player-name-input" placeholder="พิมพ์ชื่อของคุณที่นี่..." maxlength="15" class="w-full text-center font-bold text-lg bg-gray-50 border-2 border-amber-300 rounded-2xl p-3 mb-4 focus:outline-none focus:ring-4 focus:ring-amber-500/30 transition">
+            
+            <button onclick="savePlayerName()" class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-2xl transition shadow-md flex items-center justify-center gap-2 text-lg">
+                <i class="fa-solid fa-cloud-arrow-up"></i> บันทึกข้อมูลและเริ่มงาน
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal 4: Global Leaderboard -->
+    <div id="leaderboard-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-4 border-indigo-300 relative transform scale-95 transition-transform duration-300">
+            <button onclick="closeLeaderboard()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-2xl">
+                    <i class="fa-solid fa-globe"></i>
+                </div>
+                <div class="text-left">
+                    <h2 class="text-xl font-bold font-cute text-indigo-950">กระดานผู้นำระดับโลก</h2>
+                    <p class="text-[11px] text-gray-500">อัปเดตแบบเรียลไทม์ (จำลอง)</p>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
+                <ul id="leaderboard-list" class="divide-y divide-gray-200 text-sm">
+                    <!-- List items generated by JS -->
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-amber-200 py-3 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-wrap justify-between items-center gap-2">
+            <span>🍰 สื่อการเรียนรู้คณิตศาสตร์ ชั้นประถมศึกษาปีที่ 5 - ร้านเบเกอรีนักแบ่งเค้ก</span>
+            <span>ออกแบบตามหลักการเรียนรู้จากรูปธรรมสู่สัญลักษณ์ (Concrete to Abstract)</span>
+        </div>
+    </footer>
+
+    <script>
+        /* ==========================================================================
+           GAME STATE & CONSTANTS
+           ========================================================================== */
+        let gameState = {
+            playerName: "",
+            score: 0,
+            completedOrders: 0,
+            soundEnabled: true,
+            placedSlices: [], // Array of objects: { fractionStr, flavor, slots, startSlot }
+            currentOrder: null,
+            totalSlotsOccupied: 0
+        };
+
+        /* ==========================================================================
+           ONLINE SYSTEM & CLOUD SAVE (Simulated via LocalStorage)
+           ========================================================================== */
+        
+        function initOnlineSystem() {
+            const savedName = localStorage.getItem('bakery_playerName');
+            const savedScore = localStorage.getItem('bakery_score');
+            const savedOrders = localStorage.getItem('bakery_orders');
+
+            if (savedName) {
+                gameState.playerName = savedName;
+                gameState.score = savedScore ? parseInt(savedScore) : 0;
+                gameState.completedOrders = savedOrders ? parseInt(savedOrders) : 0;
+                updateProfileUI();
+                showToast("ซิงค์ข้อมูลจากคลาวด์สำเร็จแล้ว ☁️", "info");
+            } else {
+                openLoginModal();
+            }
+        }
+
+        function saveToCloud() {
+            if (!gameState.playerName) return;
+            localStorage.setItem('bakery_playerName', gameState.playerName);
+            localStorage.setItem('bakery_score', gameState.score.toString());
+            localStorage.setItem('bakery_orders', gameState.completedOrders.toString());
+            showToast("บันทึกข้อมูลอัตโนมัติ 💾", "success");
+        }
+
+        function updateProfileUI() {
+            document.getElementById('player-name-display').textContent = gameState.playerName || "ผู้เล่นใหม่";
+            document.getElementById('player-welcome-msg').textContent = `ยินดีต้อนรับกลับมาทำเค้ก, เชฟ ${gameState.playerName}!`;
+            document.getElementById('score-display').textContent = gameState.score;
+            document.getElementById('completed-count').textContent = `${gameState.completedOrders} ถาด`;
+        }
+
+        function openLoginModal() {
+            const modal = document.getElementById('login-modal');
+            const input = document.getElementById('player-name-input');
+            input.value = gameState.playerName;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-95');
+            modal.firstElementChild.classList.add('scale-100');
+            input.focus();
+        }
+
+        function savePlayerName() {
+            const input = document.getElementById('player-name-input').value.trim();
+            if (input.length < 2) {
+                alert("กรุณาตั้งชื่อให้มีความยาวอย่างน้อย 2 ตัวอักษรครับ");
+                return;
+            }
+            gameState.playerName = input;
+            updateProfileUI();
+            saveToCloud();
+            
+            // Close Modal
+            const modal = document.getElementById('login-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+            playToneSound('pop');
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const colors = type === "success" ? "bg-emerald-500" : (type === "warning" ? "bg-amber-500" : "bg-indigo-500");
+            const icon = type === "success" ? "fa-check" : (type === "warning" ? "fa-exclamation" : "fa-cloud");
+
+            toast.className = `${colors} text-white px-4 py-2 rounded-xl shadow-lg font-medium text-xs flex items-center gap-2 transform transition-all duration-300 translate-y-10 opacity-0`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+            
+            container.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-10', 'opacity-0');
+            }, 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openLeaderboard() {
+            const modal = document.getElementById('leaderboard-modal');
+            const list = document.getElementById('leaderboard-list');
+            
+            // Mock Data representing other players online
+            let players = [
+                { name: "ด.ช. อัจฉริยะ", score: 1500, avatar: "👦" },
+                { name: "เชฟกระทะเหล็ก", score: 1200, avatar: "👨‍🍳" },
+                { name: "น้องพิม", score: 800, avatar: "👧" },
+                { name: "พี่เอก", score: 400, avatar: "🧔" }
+            ];
+
+            // Add Current Player
+            players.push({
+                name: gameState.playerName + " (คุณ)",
+                score: gameState.score,
+                avatar: "🧑‍🍳",
+                isMe: true
+            });
+
+            // Sort by score descending
+            players.sort((a, b) => b.score - a.score);
+
+            // Render List
+            list.innerHTML = "";
+            players.forEach((p, index) => {
+                const li = document.createElement('li');
+                li.className = `p-3 flex items-center justify-between ${p.isMe ? 'bg-indigo-50/80 border-l-4 border-indigo-500' : ''}`;
+                
+                let rankVisual = `<span class="text-gray-500 font-bold w-6 text-center">${index + 1}</span>`;
+                if (index === 0) rankVisual = `<i class="fa-solid fa-trophy text-yellow-500 w-6 text-center"></i>`;
+                else if (index === 1) rankVisual = `<i class="fa-solid fa-medal text-gray-400 w-6 text-center"></i>`;
+                else if (index === 2) rankVisual = `<i class="fa-solid fa-medal text-amber-600 w-6 text-center"></i>`;
+
+                li.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        ${rankVisual}
+                        <div class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-lg">${p.avatar}</div>
+                        <span class="${p.isMe ? 'font-bold text-indigo-900' : 'text-gray-700 font-medium'}">${p.name}</span>
+                    </div>
+                    <div class="font-bold font-cute ${p.isMe ? 'text-indigo-600' : 'text-amber-600'}">${p.score} <i class="fa-solid fa-star text-xs"></i></div>
+                `;
+                list.appendChild(li);
+            });
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-95');
+            modal.firstElementChild.classList.add('scale-100');
+            playToneSound('pop');
+        }
+
+        function closeLeaderboard() {
+            const modal = document.getElementById('leaderboard-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+        }
+
+
+        // Available Cake Slices Palette Data (12-slot base)
+        const CAKE_SPECS = {
+            '1/2': { slots: 6, color: '#583101', stroke: '#381E00', name: 'ช็อกโกแลต', flavor: 'choco' },
+            '1/3': { slots: 4, color: '#F9844A', stroke: '#D05A1A', name: 'ส้มสด', flavor: 'orange' },
+            '1/4': { slots: 3, color: '#F25C54', stroke: '#C03028', name: 'สตอเบอร์รี', flavor: 'strawberry' },
+            '1/6': { slots: 2, color: '#84A59D', stroke: '#56756D', name: 'ชาเขียวมัทฉะ', flavor: 'matcha' },
+            '1/12': { slots: 1, color: '#6B705C', stroke: '#434738', name: 'บลูเบอร์รี', flavor: 'blueberry' }
+        };
+
+        // Pre-configured Order Deck for Grade 5
+        const ORDER_DECK = [
+            {
+                id: 1,
+                customer: "👦 น้องกาย",
+                avatar: "👦",
+                dialogue: '"ผมอยากกินเค้กช็อกโกแลต 1/2 ปอนด์ และเค้กส้ม 1/3 ปอนด์ รวมกันเป็นกี่ส่วนของถาดครับ?"',
+                term1: "1/2",
+                op: "+",
+                term2: "1/3",
+                term1Slots: 6,
+                term2Slots: 4,
+                targetSlots: 10,
+                difficulty: "ง่าย"
+            },
+            {
+                id: 2,
+                customer: "👧 น้องพิม",
+                avatar: "👧",
+                dialogue: '"หนูอยากจัดถาดเค้กส้ม 1/3 ปอนด์ กับเค้กสตอเบอร์รี 1/4 ปอนด์ รวมกันให้หน่อยค่ะ"',
+                term1: "1/3",
+                op: "+",
+                term2: "1/4",
+                term1Slots: 4,
+                term2Slots: 3,
+                targetSlots: 7,
+                difficulty: "ง่าย"
+            },
+            {
+                id: 3,
+                customer: "👵 คุณยายสมศรี",
+                avatar: "👵",
+                dialogue: '"ยายอยากซื้อเค้กช็อกโกแลต 1/2 ปอนด์ และเค้กสตอเบอร์รี 1/4 ปอนด์ ช่วยคำนวณเค้กรวมให้ยายทีนะ"',
+                term1: "1/2",
+                op: "+",
+                term2: "1/4",
+                term1Slots: 6,
+                term2Slots: 3,
+                targetSlots: 9,
+                difficulty: "ปานกลาง"
+            },
+            {
+                id: 4,
+                customer: "👨‍🍳 เชฟแป้ง",
+                avatar: "👨‍🍳",
+                dialogue: '"ผมอยากผสมเค้กมัทฉะ 1/6 ปอนด์ เข้ากับเค้กส้ม 1/3 ปอนด์ ลองจัดถาดให้ดูหน่อย!"',
+                term1: "1/6",
+                op: "+",
+                term2: "1/3",
+                term1Slots: 2,
+                term2Slots: 4,
+                targetSlots: 6,
+                difficulty: "ปานกลาง"
+            },
+            {
+                id: 5,
+                customer: "🧔 คุณลุงเบน",
+                avatar: "🧔",
+                dialogue: '"ลุงอยากได้เค้กช็อกโกแลต 1/2 ปอนด์ เพิ่มเค้กบลูเบอร์รี 1/12 ปอนด์ จะเต็มถาดไปกี่ช่องนะ?"',
+                term1: "1/2",
+                op: "+",
+                term2: "1/12",
+                term1Slots: 6,
+                term2Slots: 1,
+                targetSlots: 7,
+                difficulty: "ปานกลาง"
+            }
+        ];
+
+        /* ==========================================================================
+           AUDIO ENGINE (Tone.js Integration)
+           ========================================================================== */
+        let synth = null;
+
+        function initAudio() {
+            if (!synth && typeof Tone !== 'undefined') {
+                try {
+                    synth = new Tone.Synth().toDestination();
+                } catch(e) {
+                    console.log("Audio synth init failed:", e);
+                }
+            }
+        }
+
+        function playToneSound(type) {
+            if (!gameState.soundEnabled) return;
+            initAudio();
+            if (!synth) return;
+
+            try {
+                if (Tone.context.state !== 'running') {
+                    Tone.start();
+                }
+                if (type === 'pop') {
+                    synth.triggerAttackRelease("C5", "8n");
+                } else if (type === 'success') {
+                    const now = Tone.now();
+                    synth.triggerAttackRelease("C5", "8n", now);
+                    synth.triggerAttackRelease("E5", "8n", now + 0.1);
+                    synth.triggerAttackRelease("G5", "8n", now + 0.2);
+                } else if (type === 'error') {
+                    synth.triggerAttackRelease("A3", "8n");
+                }
+            } catch(e) {
+                // Ignore audio errors silently
+            }
+        }
+
+        function toggleSound() {
+            gameState.soundEnabled = !gameState.soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            if (gameState.soundEnabled) {
+                btn.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+                btn.className = "bg-gray-100 hover:bg-gray-200 text-gray-700 w-10 h-10 rounded-xl transition flex items-center justify-center";
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-volume-xmark text-rose-500"></i>`;
+                btn.className = "bg-rose-50 hover:bg-rose-100 text-rose-600 w-10 h-10 rounded-xl transition flex items-center justify-center";
+            }
+        }
+
+        /* ==========================================================================
+           INITIALIZATION & TRAY SVG RENDERING
+           ========================================================================== */
+        window.onload = function() {
+            renderTrayGridLines();
+            drawNewOrder();
+            updateTrayDisplay();
+            initOnlineSystem(); // Initialize user profile and cloud save
+        };
+
+        // Draw 12 Dashed Division Lines & Outer Slice Numbers (1..12)
+        function renderTrayGridLines() {
+            const linesGroup = document.getElementById('tray-grid-lines');
+            const labelsGroup = document.getElementById('tray-grid-labels');
+            linesGroup.innerHTML = '';
+            labelsGroup.innerHTML = '';
+
+            const cx = 200, cy = 200, radius = 175;
+
+            for (let i = 0; i < 12; i++) {
+                // Angle in radians (30 degrees per slice, starting at top -90deg)
+                const angleDeg = (i * 30) - 90;
+                const angleRad = (angleDeg * Math.PI) / 180;
+
+                // Line endpoint
+                const x2 = cx + radius * Math.cos(angleRad);
+                const y2 = cy + radius * Math.sin(angleRad);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', cx);
+                line.setAttribute('y1', cy);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                linesGroup.appendChild(line);
+
+                // Label center angle (middle of slice)
+                const labelAngleDeg = angleDeg + 15;
+                const labelAngleRad = (labelAngleDeg * Math.PI) / 180;
+                const labelRadius = radius - 18;
+                const lx = cx + labelRadius * Math.cos(labelAngleRad);
+                const ly = cy + labelRadius * Math.sin(labelAngleRad);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', lx);
+                text.setAttribute('y', ly + 4); // Vertical alignment tweak
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = (i + 1);
+                labelsGroup.appendChild(text);
+            }
+        }
+
+        /* ==========================================================================
+           CAKE PIECE PLACEMENT & SVG WEDGES ENGINE
+           ========================================================================== */
+        function addCakePiece(fractionStr, flavor) {
+            const spec = CAKE_SPECS[fractionStr];
+            if (!spec) return;
+
+            // Check if adding this slice exceeds 12/12 slots
+            if (gameState.totalSlotsOccupied + spec.slots > 12) {
+                showCustomModal(
+                    "ถาดเค้กเต็มแล้ว!",
+                    `ไม่สามารถวางชิ้นส่วน ${fractionStr} (${spec.slots} ช่อง) ได้อีก เนื่องจากถาดมีพื้นที่เหลือเพียง ${12 - gameState.totalSlotsOccupied} ช่อง`,
+                    "fa-circle-exclamation",
+                    "amber"
+                );
+                playToneSound('error');
+                return;
+            }
+
+            // Record starting slot index
+            const startSlot = gameState.totalSlotsOccupied;
+            gameState.placedSlices.push({
+                fractionStr: fractionStr,
+                flavor: flavor,
+                slots: spec.slots,
+                startSlot: startSlot,
+                spec: spec
+            });
+
+            gameState.totalSlotsOccupied += spec.slots;
+
+            playToneSound('pop');
+            updateTrayDisplay();
+        }
+
+        function clearTray() {
+            gameState.placedSlices = [];
+            gameState.totalSlotsOccupied = 0;
+            playToneSound('pop');
+            updateTrayDisplay();
+        }
+
+        // Re-draw SVG Cake Wedges on Tray
+        function updateTrayDisplay() {
+            const group = document.getElementById('placed-slices-group');
+            group.innerHTML = '';
+
+            const emptyMsg = document.getElementById('empty-tray-msg');
+            if (gameState.placedSlices.length === 0) {
+                emptyMsg.style.opacity = '1';
+            } else {
+                emptyMsg.style.opacity = '0';
+            }
+
+            const cx = 200, cy = 200, radius = 172;
+
+            gameState.placedSlices.forEach((slice, idx) => {
+                const startAngleDeg = (slice.startSlot * 30) - 90;
+                const endAngleDeg = ((slice.startSlot + slice.slots) * 30) - 90;
+
+                const startRad = (startAngleDeg * Math.PI) / 180;
+                const endRad = (endAngleDeg * Math.PI) / 180;
+
+                const x1 = cx + radius * Math.cos(startRad);
+                const y1 = cy + radius * Math.sin(startRad);
+                const x2 = cx + radius * Math.cos(endRad);
+                const y2 = cy + radius * Math.sin(endRad);
+
+                // Large arc flag is 1 if angle >= 180 deg (6 slots or more)
+                const largeArcFlag = slice.slots >= 6 ? 1 : 0;
+
+                // SVG Path string for circular sector wedge
+                const pathData = [
+                    `M ${cx} ${cy}`,
+                    `L ${x1} ${y1}`,
+                    `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                    'Z'
+                ].join(' ');
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('fill', slice.spec.color);
+                path.setAttribute('stroke', slice.spec.stroke);
+                path.setAttribute('stroke-width', '3');
+                path.setAttribute('class', 'transition-all duration-300 hover:brightness-110 cursor-pointer');
+                
+                // Click slice to remove it
+                path.onclick = function() {
+                    removeCakeSlice(idx);
+                };
+
+                group.appendChild(path);
+
+                // Add fraction text label inside wedge center
+                const midAngleDeg = startAngleDeg + (slice.slots * 15);
+                const midRad = (midAngleDeg * Math.PI) / 180;
+                const textRadius = radius * 0.62;
+                const tx = cx + textRadius * Math.cos(midRad);
+                const ty = cy + textRadius * Math.sin(midRad);
+
+                const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', tx);
+                text.setAttribute('y', ty + 4);
+                text.setAttribute('text-anchor', 'middle');
+                text.setAttribute('fill', '#FFFFFF');
+                text.setAttribute('font-weight', 'bold');
+                text.setAttribute('font-size', slice.slots <= 2 ? '11px' : '14px');
+                text.textContent = slice.fractionStr;
+                group.appendChild(text);
+            });
+
+            // Update Progress Bar & Counts
+            const slotsText = document.getElementById('slots-count-text');
+            const progressBar = document.getElementById('tray-progress-bar');
+            const sumSimple = document.getElementById('fraction-sum-simple');
+            const sumTwelfths = document.getElementById('fraction-sum-twelfths');
+
+            slotsText.textContent = `${gameState.totalSlotsOccupied} / 12 ช่อง`;
+            const pct = (gameState.totalSlotsOccupied / 12) * 100;
+            progressBar.style.width = `${pct}%`;
+
+            sumTwelfths.textContent = `คิดเป็น ${gameState.totalSlotsOccupied}/12`;
+            
+            if (gameState.placedSlices.length > 0) {
+                const piecesStr = gameState.placedSlices.map(s => s.fractionStr).join(' + ');
+                sumSimple.textContent = `เค้กรวม: ${piecesStr}`;
+            } else {
+                sumSimple.textContent = `เค้กรวมบนถาด: 0 ปอนด์`;
+            }
+        }
+
+        function removeCakeSlice(index) {
+            gameState.placedSlices.splice(index, 1);
+            // Recalculate start slots for remaining slices
+            let curSlot = 0;
+            gameState.placedSlices.forEach(s => {
+                s.startSlot = curSlot;
+                curSlot += s.slots;
+            });
+            gameState.totalSlotsOccupied = curSlot;
+            playToneSound('pop');
+            updateTrayDisplay();
+        }
+
+        /* ==========================================================================
+           ORDER MANAGEMENT ENGINE
+           ========================================================================== */
+        function drawNewOrder() {
+            // Pick a random order from deck
+            const randomIndex = Math.floor(Math.random() * ORDER_DECK.length);
+            const order = ORDER_DECK[randomIndex];
+            applyOrderToUI(order);
+        }
+
+        function applyOrderToUI(order) {
+            gameState.currentOrder = order;
+
+            document.getElementById('customer-avatar').textContent = order.avatar;
+            document.getElementById('customer-dialogue').textContent = order.dialogue;
+            document.getElementById('order-text').textContent = `เค้ก ${order.term1} ปอนด์ ${order.op} เค้ก ${order.term2} ปอนด์`;
+            document.getElementById('order-difficulty').textContent = `ระดับ: ${order.difficulty}`;
+
+            // Reset inputs & tray
+            clearTray();
+            document.getElementById('eq-term1').textContent = order.term1;
+            document.getElementById('eq-op').textContent = order.op;
+            document.getElementById('eq-term2').textContent = order.term2;
+            document.getElementById('eq-op2').textContent = order.op;
+
+            document.getElementById('input-num1').value = '';
+            document.getElementById('input-num2').value = '';
+            document.getElementById('input-result').value = '';
+
+            document.getElementById('target-fraction-display').textContent = `? / 12`;
+        }
+
+        /* ==========================================================================
+           GEMINI AI DYNAMIC ORDER GENERATOR
+           ========================================================================== */
+        async function generateAIOrder() {
+            showCustomModal(
+                "กำลังเรียก AI ลูกค้า...",
+                "ระบบกำลังเชื่อมต่อ Gemini เพื่อสร้างโจทย์ปัญหาสนุกๆ ย้อนหลัง...",
+                "fa-wand-magic-sparkles",
+                "indigo"
+            );
+
+            const prompt = "สร้างโจทย์ปัญหาเศษส่วนคณิตศาสตร์ ป.5 การบวกเศษส่วนที่ตัวส่วนไม่เท่ากัน (ใช้ส่วน 2, 3, 4, 6 หรือ 12 เท่านั้น) ตอบกลับเป็น JSON ในรูปแบบ: {\"customerName\": \"ชื่อตัวละคร\", \"avatar\": \"อิโมจิ\", \"dialogue\": \"คำพูดโจทย์ในชีวิตประจำวัน\", \"term1\": \"1/2\", \"term2\": \"1/3\"}";
+
+            try {
+                const apiKey = ""; // Canvas runtime auto-injects
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: {
+                        responseMimeType: "application/json"
+                    }
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                const jsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if (jsonText) {
+                    const parsed = JSON.parse(jsonText);
+                    const spec1 = CAKE_SPECS[parsed.term1] || CAKE_SPECS['1/2'];
+                    const spec2 = CAKE_SPECS[parsed.term2] || CAKE_SPECS['1/3'];
+
+                    const customOrder = {
+                        id: Date.now(),
+                        customer: parsed.customerName || "ลูกค้า AI",
+                        avatar: parsed.avatar || "🤖",
+                        dialogue: parsed.dialogue || `ช่วยรวมเค้ก ${parsed.term1} กับ ${parsed.term2} ให้หน่อยครับ`,
+                        term1: parsed.term1,
+                        op: "+",
+                        term2: parsed.term2,
+                        term1Slots: spec1.slots,
+                        term2Slots: spec2.slots,
+                        targetSlots: spec1.slots + spec2.slots,
+                        difficulty: "AI สร้างพิเศษ"
+                    };
+
+                    closeCustomModal();
+                    applyOrderToUI(customOrder);
+                    playToneSound('success');
+                } else {
+                    throw new Error("Invalid response format");
+                }
+
+            } catch (err) {
+                console.log("AI Generation Fallback:", err);
+                closeCustomModal();
+                drawNewOrder(); // Fallback to random deck
+            }
+        }
+
+        /* ==========================================================================
+           VERIFICATION & LEDGER VALIDATION
+           ========================================================================== */
+        function submitOrderAndLedger() {
+            const order = gameState.currentOrder;
+            if (!order) return;
+
+            // 1. Verify Hands-on Tray Slices
+            if (gameState.totalSlotsOccupied !== order.targetSlots) {
+                showCustomModal(
+                    "ชิ้นส่วนเค้กบนถาดไม่ถูกต้อง!",
+                    `ออเดอร์ต้องการให้รวม ${order.term1} + ${order.term2} (คิดเป็น ${order.targetSlots} ช่อง) แต่บนถาดของหนูมีเค้กรวม ${gameState.totalSlotsOccupied} ช่อง ลองปรับเค้กบนถาดใหม่นะ!`,
+                    "fa-triangle-exclamation",
+                    "rose"
+                );
+                playToneSound('error');
+                return;
+            }
+
+            // 2. Verify Symbolic Translation Inputs
+            const val1 = parseInt(document.getElementById('input-num1').value);
+            const val2 = parseInt(document.getElementById('input-num2').value);
+            const valRes = parseInt(document.getElementById('input-result').value);
+
+            if (isNaN(val1) || isNaN(val2) || isNaN(valRes)) {
+                showCustomModal(
+                    "สมุดบัญชียังกรอกไม่ครบ!",
+                    "อย่าลืมบันทึกตัวเลขลงในสมุดบัญชีร้าน (ช่องสีเหลือง) ก่อนส่งเสิร์ฟนะ!",
+                    "fa-pen-to-square",
+                    "amber"
+                );
+                playToneSound('error');
+                return;
+            }
+
+            if (val1 !== order.term1Slots || val2 !== order.term2Slots || valRes !== order.targetSlots) {
+                showCustomModal(
+                    "สมการคณิตศาสตร์ไม่ถูกต้อง!",
+                    `ลองตรวจอีกทีสิว่า:\n• ${order.term1} คิดเป็นกี่ช่องในส่วน 12? (เฉลย: ${order.term1Slots})\n• ${order.term2} คิดเป็นกี่ช่องในส่วน 12? (เฉลย: ${order.term2Slots})\n• ผลรวมคือ ${order.targetSlots}/12`,
+                    "fa-circle-xmark",
+                    "rose"
+                );
+                playToneSound('error');
+                return;
+            }
+
+            // Success!
+            gameState.score += 100;
+            gameState.completedOrders += 1;
+
+            updateProfileUI(); // Update UI
+            saveToCloud();     // Auto-save to cloud
+
+            playToneSound('success');
+
+            showCustomModal(
+                "เค้กพร้อมเสิร์ฟ! ถูกต้องสมบูรณ์ 🎉",
+                `เก่งมาก! หนูเข้าใจการทำส่วนให้เท่ากันอย่างถูกต้อง (${order.term1} = ${val1}/12 และ ${order.term2} = ${val2}/12 รวมเป็น ${valRes}/12) ได้รับ 100 คะแนน!`,
+                "fa-circle-check",
+                "emerald"
+            );
+
+            setTimeout(() => {
+                drawNewOrder();
+            }, 1800);
+        }
+
+        /* ==========================================================================
+           MODALS & SLIDES TUTORIAL
+           ========================================================================== */
+        let currentSlide = 0;
+
+        function openTutorialModal() {
+            const modal = document.getElementById('tutorial-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const content = modal.firstElementChild;
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+            showSlide(0);
+        }
+
+        function closeTutorialModal() {
+            const modal = document.getElementById('tutorial-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const content = modal.firstElementChild;
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        }
+
+        function changeSlide(direction) {
+            showSlide(currentSlide + direction);
+        }
+
+        function showSlide(index) {
+            const slides = document.querySelectorAll('.slide-item');
+            const dots = document.querySelectorAll('.slide-dot');
+            if (index < 0 || index >= slides.length) return;
+
+            currentSlide = index;
+
+            slides.forEach((s, i) => {
+                if (i === index) {
+                    s.classList.remove('hidden');
+                    s.classList.add('block');
+                } else {
+                    s.classList.remove('block');
+                    s.classList.add('hidden');
+                }
+            });
+
+            dots.forEach((d, i) => {
+                d.className = i === index ? "slide-dot w-2.5 h-2.5 rounded-full bg-amber-500" : "slide-dot w-2.5 h-2.5 rounded-full bg-gray-200";
+            });
+
+            const prevBtn = document.getElementById('prev-slide-btn');
+            const nextBtn = document.getElementById('next-slide-btn');
+
+            if (index === 0) {
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+
+            if (index === slides.length - 1) {
+                nextBtn.innerHTML = `เริ่มเล่นเลย! <i class="fa-solid fa-play ml-1"></i>`;
+                nextBtn.onclick = closeTutorialModal;
+            } else {
+                nextBtn.innerHTML = `ถัดไป <i class="fa-solid fa-arrow-right ml-1"></i>`;
+                nextBtn.onclick = function() { changeSlide(1); };
+            }
+        }
+
+        function showCustomModal(title, msg, iconClass = "fa-star", colorTheme = "amber") {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-msg').innerText = msg;
+
+            const iconBox = document.getElementById('modal-icon');
+            iconBox.innerHTML = `<i class="fa-solid ${iconClass}"></i>`;
+
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-95');
+            modal.firstElementChild.classList.add('scale-100');
+        }
+
+        function closeCustomModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            modal.firstElementChild.classList.remove('scale-100');
+            modal.firstElementChild.classList.add('scale-95');
+        }
+    </script>
+</body>
+</html>
